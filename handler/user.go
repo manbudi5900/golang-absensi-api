@@ -3,6 +3,7 @@ package handler
 import (
 	"absensi/helper"
 	"absensi/user"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -61,4 +62,34 @@ func (h *userHandler) LoginUser(c *gin.Context) {
 	formatter := user.FormatUser(userLogin, "12121121212")
 	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *userHandler) UploadAvatar(c *gin.Context) {
+	file, err := c.FormFile("avatar")
+	if err != nil {
+
+		data := gin.H{"is_upload": false}
+		response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "failed", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	userID := "cd3c5838-5acb-43b9-bb21-de5ee511a3d1"
+
+	path := fmt.Sprintf("images/%s-%s", userID, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+
+		data := gin.H{"is_upload": false}
+		response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "failed", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	_, err = h.userService.SaveAvatar(userID, path)
+
+	data := gin.H{"is_upload": true}
+	response := helper.APIResponse("Success to upload avatar image", http.StatusOK, "success", data)
+	c.JSON(http.StatusBadRequest, response)
+	return
+
 }

@@ -86,6 +86,13 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	}
 
 	_, err = h.userService.SaveAvatar(userID, path)
+	if err != nil {
+
+		data := gin.H{"is_upload": false}
+		response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "failed", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
 
 	data := gin.H{"is_upload": true}
 	response := helper.APIResponse("Success to upload avatar image", http.StatusOK, "success", data)

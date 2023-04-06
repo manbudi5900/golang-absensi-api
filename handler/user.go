@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"absensi/auth"
 	"absensi/helper"
 	"absensi/user"
 	"fmt"
@@ -11,10 +12,11 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewUserHandler(userService user.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegisterUser(c *gin.Context) {
@@ -35,7 +37,15 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
-	formatter := user.FormatUser(newUser, "12121121212")
+	token, err := h.authService.GenerateToken(newUser.ID)
+	if err != nil {
+
+		errorMessage := gin.H{"errors": helper.FormatValidatorError(err)}
+		response := helper.APIResponse("Register account failed", http.StatusBadRequest, "failed", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	formatter := user.FormatUser(newUser, token)
 	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
@@ -58,8 +68,16 @@ func (h *userHandler) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
+	token, err := h.authService.GenerateToken(userLogin.ID)
+	if err != nil {
 
-	formatter := user.FormatUser(userLogin, "12121121212")
+		errorMessage := gin.H{"errors": helper.FormatValidatorError(err)}
+		response := helper.APIResponse("Register account failed", http.StatusBadRequest, "failed", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := user.FormatUser(userLogin, token)
 	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
@@ -97,6 +115,5 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 	data := gin.H{"is_upload": true}
 	response := helper.APIResponse("Success to upload avatar image", http.StatusOK, "success", data)
 	c.JSON(http.StatusBadRequest, response)
-	return
 
 }

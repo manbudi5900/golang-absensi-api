@@ -1,6 +1,7 @@
 package main
 
 import (
+	"absensi/auth"
 	"absensi/handler"
 	"absensi/user"
 	"fmt"
@@ -24,10 +25,9 @@ func main() {
 
 	userRepository := user.NewRepository(db)
 	userService := user.NewService(userRepository)
+	authService := auth.NewService()
 
-	userService.SaveAvatar("cd3c5838-5acb-43b9-bb21-de5ee511a3d1", "images/cd3c5838-5acb-43b9-bb21-de5ee511a3d1-profile.png")
-
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, authService)
 
 	router := gin.Default()
 

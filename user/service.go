@@ -11,6 +11,8 @@ type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	LoginUser(input LoginUserInput) (User, error)
 	// IsEmailAvailable(input CheckEmailUserInput) (User, error)
+	GetUserByID(ID string) (User, error)
+
 	SaveAvatar(ID string, fileLocation string) (User, error)
 }
 
@@ -81,4 +83,16 @@ func (s *service) SaveAvatar(ID string, fileLocation string) (User, error) {
 		return updateUser, err
 	}
 	return updateUser, nil
+}
+func (s *service) GetUserByID(ID string) (User, error) {
+	user, err := s.repository.FindByID(ID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.ID == "0" {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	return user, nil
 }
